@@ -30,17 +30,45 @@
 // the first rule defined is the highest-level rule, which in our
 // case is just the concept of a whole "snazzle file":
 lines:
-  lines line
-| line
+  lines ENDL
+| lines SEMICOLON ENDL
+| lines pipelines
+| pipelines
+  ;
+pipelines:
+  pipeline0
+| pipelines SEMICOLON pipeline0
   {
-    printf("done with a snazzle file!\n");//, endl;
+    printf("eol\n");
+  }  
+  ;
+
+pipeline0:
+  pipeline
+  {
+    printf("-------ppl\n");
   }
   ;
-line: STRING
+pipeline:
+  command
+| pipeline PIPE command 
   {
-    printf("found a line %s\n", $2);
+    printf("pipeline\n");
+    // printf("pipeline %s\n", $1);
   }
   ;
+
+command:
+  command_token
+| command command_token
+  ;
+command_token:
+  STRING
+  {
+    printf("command %s\n", $1);
+  }
+  ;
+
 // template:
 //   typelines
 //   ;
@@ -74,16 +102,16 @@ line: STRING
 %%
 
 int main(int argc, char** argv) {
-  // open a file handle to a particular file:
-  FILE *myfile = fopen("a.snazzle.file", "r");
-  // make sure it's valid:
-  if (!myfile) {
-    printf("I can't open a.snazzle.file!"); //, endl;
-    return -1;
-  }
-  // Set flex to read from it instead of defaulting to STDIN:
-  yyin = myfile;
-
+//  // open a file handle to a particular file:
+//  FILE *myfile = fopen("a.snazzle.file", "r");
+//  // make sure it's valid:
+//  if (!myfile) {
+//    printf("I can't open a.snazzle.file!"); //, endl;
+//    return -1;
+//  }
+//  // Set flex to read from it instead of defaulting to STDIN:
+//  yyin = myfile;
+//
   // Parse through the input:
   yyparse();
 }
