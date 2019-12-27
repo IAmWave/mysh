@@ -9,16 +9,9 @@
 #include <sys/param.h>
 #include <unistd.h>
 
-#ifdef DEBUG
-#define debug(format, ...) fprintf(stderr, "%d: " format, getpid(), ##__VA_ARGS__)
-#else
-#define debug(format, ...) ;
-#endif
-
-#define eprintf(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
-
 const int N_TOKENS = 100;
 
+bool interactive;
 char* tokens[N_TOKENS];
 bool process_running = false;
 int exit_status = 0;
@@ -35,12 +28,17 @@ void clear_command_tokens() {
 void handle_syntax_error(const char* msg) {
     printf("Parsing error on line %d. Message from Bison: %s\n", line_number, msg);
     exit_status = 2;
+    if (!interactive) {
+        exit(2);
+    }
 }
 
 void handle_line() {
     line_number++;
-    printf("mysh:%s$ ", pwd);
-    fflush(stdout);
+    if (interactive) {
+        printf("mysh:%s$ ", pwd);
+        fflush(stdout);
+    }
 }
 
 int get_n_tokens() {
