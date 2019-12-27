@@ -1,5 +1,6 @@
 #include "mysh.h"
 
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,9 +13,13 @@
 #define debug(format, ...) ;
 #endif
 
+#define eprintf(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
+
 const char* PROMPT = "mysh$ ";
 const int N_TOKENS = 100;
+
 char* tokens[N_TOKENS];
+bool process_running = false;
 
 void clear_command_tokens() {
     for (int i = 0; i < N_TOKENS; i++) {
@@ -26,6 +31,7 @@ void clear_command_tokens() {
 void handle_line() {
     // printf("\n");
     printf("%s", PROMPT);
+    fflush(stdout);
 }
 
 void handle_command() {
@@ -35,6 +41,7 @@ void handle_command() {
     }
     pid_t fork_pid;
     bool parent;
+    process_running = true;
     switch (fork_pid = fork()) {
         case -1:
             debug("Error when forking\n");
@@ -47,19 +54,21 @@ void handle_command() {
     }
     if (!parent) {
         int res = execvp(tokens[0], tokens);
-        debug("Error occurred in execvp: %d\n", res);
+        eprintf("Error occurred in execvp: %d\n", res);
         exit(1);
     } else {
         clear_command_tokens();
         int stat_loc;
         wait(&stat_loc);
         if (WIFSIGNALED(stat_loc)) {
-            printf("Child terminated with signal %d\n", WTERMSIG(stat_loc));
+            eprintf("Killed by signal %d\n", WTERMSIG(stat_loc));
         }
+        process_running = false;
     }
     // char* args[] = {"1", "x", NULL};
     // printf("x %d\n", res);
 }
+
 void handle_token(char* token) {
     debug("Handling token %s\n", token);
     int i;
@@ -69,4 +78,22 @@ void handle_token(char* token) {
     strcpy(tokens[i], token);
 }
 
-void init() { handle_line(); }
+void sigint_handler(int sig) {
+    if (!process_running) {
+        write(1, "\n", strlen("\n"));
+        handle_line();
+    }
+}
+
+void set_sigint_handler() {
+    struct sigaction act = {0};
+    act.sa_handler = sigint_handler;
+    act.sa_flags = SA_RESTART;
+    sigemptyset(&act.sa_mask);
+    sigaction(SIGINT, &act, NULL);
+}
+
+void init() {
+    set_sigint_handler();
+    handle_line();
+}

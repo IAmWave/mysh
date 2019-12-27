@@ -17,6 +17,5 @@ SOURCE_FILES=src/main.c src/mysh.c
 build/mysh: build/ build/mysh.yy.c build/mysh.tab.c build/mysh.tab.h $(SOURCE_FILES)
 	gcc \
 		build/mysh.tab.c build/mysh.yy.c $(SOURCE_FILES) \
-		-ll -Wall -Wextra \
-		-DDEBUG \
+		-ll -Wall -Wextra $(EXTRA_FLAGS) \
 		-o build/mysh
