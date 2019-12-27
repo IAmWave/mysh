@@ -11,7 +11,7 @@ void yyerror(const char *s);
 #include "../build/mysh.tab.h"
 #include "mysh.h"
 
-int main(int argc, char **argv) {
+int main() {
     //  // open a file handle to a particular file:
     //  FILE *myfile = fopen("a.snazzle.file", "r");
     //  // make sure it's valid:
@@ -26,4 +26,5 @@ int main(int argc, char **argv) {
 
     init();
     yyparse();
+    return exit_status;
 }
