@@ -64,8 +64,6 @@ command_token: STRING
 
 %%
 
-void yyerror(const char *s) {
-    printf("Parse error! Message: %s\n", s);
-    exit_status = 2;
+void yyerror(const char *msg) {
+    handle_syntax_error(msg);
 }
-

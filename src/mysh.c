@@ -22,6 +22,7 @@ const int N_TOKENS = 100;
 char* tokens[N_TOKENS];
 bool process_running = false;
 int exit_status = 0;
+int line_number = 0;
 
 void clear_command_tokens() {
     for (int i = 0; i < N_TOKENS; i++) {
@@ -30,7 +31,13 @@ void clear_command_tokens() {
     memset(tokens, 0, sizeof(tokens));
 }
 
+void handle_syntax_error(char* msg) {
+    printf("Syntax error on line %d\n", line_number);
+    exit_status = 2;
+}
+
 void handle_line() {
+    line_number++;
     printf("%s", PROMPT);
     fflush(stdout);
 }
