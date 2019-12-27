@@ -86,7 +86,7 @@ void run_cd() {
             target = tokens[1];
         }
     } else {
-        eprintf("cd expected at most one argument.\n");
+        eprintf("cd: too many arguments\n");
         exit_status = 1;
         return;
     }
