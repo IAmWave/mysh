@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/param.h>
 #include <unistd.h>
 
 #ifdef DEBUG
@@ -16,13 +17,13 @@
 
 #define eprintf(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
 
-const char* PROMPT = "mysh$ ";
 const int N_TOKENS = 100;
 
 char* tokens[N_TOKENS];
 bool process_running = false;
 int exit_status = 0;
 int line_number = 0;
+char pwd[MAXPATHLEN], oldpwd[MAXPATHLEN];
 
 void clear_command_tokens() {
     for (int i = 0; i < N_TOKENS; i++) {
@@ -31,21 +32,26 @@ void clear_command_tokens() {
     memset(tokens, 0, sizeof(tokens));
 }
 
-void handle_syntax_error(char* msg) {
-    printf("Syntax error on line %d\n", line_number);
+void handle_syntax_error(const char* msg) {
+    printf("Parsing error on line %d. Message from Bison: %s\n", line_number, msg);
     exit_status = 2;
 }
 
 void handle_line() {
     line_number++;
-    printf("%s", PROMPT);
+    printf("mysh:%s$ ", pwd);
     fflush(stdout);
 }
 
-void run_exit() {
+int get_n_tokens() {
     int n_tokens;
     for (n_tokens = 0; tokens[n_tokens] != NULL; n_tokens++)
         ;
+    return n_tokens;
+}
+
+void run_exit() {
+    int n_tokens = get_n_tokens();
     if (n_tokens > 1) {
         eprintf("'exit' was not expecting any arguments.\n");
         exit_status = 1;
@@ -54,8 +60,48 @@ void run_exit() {
     }
 }
 
+void update_pwd() {
+    char* getwd_res = getwd(pwd);
+    if (getwd_res == NULL) {
+        // getwd stores the error message in the buffer passed as an argument
+        eprintf("Error in getwd: %s\n", pwd);
+        // This would leave the shell in a weird state, so let's just give up.
+        exit(1);
+    }
+}
+
 void run_cd() {
-    // TODO: implement
+    int n_tokens = get_n_tokens();
+    char* target;
+    if (n_tokens == 1) {
+        target = getenv("HOME");
+    } else if (n_tokens == 2) {
+        if (strcmp("-", tokens[1]) == 0) {
+            if (strcmp(oldpwd, "") == 0) {
+                eprintf("No previous directory.\n");
+                exit_status = 1;
+                return;
+            }
+            target = oldpwd;
+            printf("%s\n", oldpwd);
+        } else {
+            target = tokens[1];
+        }
+    } else {
+        eprintf("cd expected at most one argument.\n");
+        exit_status = 1;
+        return;
+    }
+    debug("cd from %s to %s, oldpwd=%s\n", pwd, target, oldpwd);
+    int res = chdir(target);
+    strcpy(oldpwd, pwd);
+    if (res != 0) {
+        eprintf("Error in cd. errno: %d\n", errno);
+        exit_status = 1;
+    } else {
+        exit_status = 0;
+    }
+    update_pwd();
 }
 
 void run_command() {
@@ -137,5 +183,6 @@ void set_sigint_handler() {
 
 void init() {
     set_sigint_handler();
+    update_pwd();
     handle_line();
 }
