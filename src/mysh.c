@@ -26,7 +26,7 @@ void clear_command_tokens() {
 }
 
 void handle_syntax_error(const char* msg) {
-    printf("Parsing error on line %d. Message from Bison: %s\n", line_number, msg);
+    eprintf("Parsing error on line %d. Message from Bison: %s\n", line_number, msg);
     exit_status = 2;
     if (!interactive) {
         exit(2);
