@@ -1,5 +1,6 @@
 #include "mysh.h"
 
+#include <errno.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -20,6 +21,7 @@ const int N_TOKENS = 100;
 
 char* tokens[N_TOKENS];
 bool process_running = false;
+int exit_status = 0;
 
 void clear_command_tokens() {
     for (int i = 0; i < N_TOKENS; i++) {
@@ -29,7 +31,6 @@ void clear_command_tokens() {
 }
 
 void handle_line() {
-    // printf("\n");
     printf("%s", PROMPT);
     fflush(stdout);
 }
@@ -54,16 +55,24 @@ void handle_command() {
     }
     if (!parent) {
         int res = execvp(tokens[0], tokens);
-        eprintf("Error occurred in execvp: %d\n", res);
-        exit(1);
+        if (errno == ENOENT) {
+            eprintf("%s: No such file or directory\n", tokens[0]);
+            exit(127);
+        } else {
+            eprintf("Unknown error in execvp. errno: %d\n", res, errno);
+            exit(-1);
+        }
     } else {
         clear_command_tokens();
         int stat_loc;
         wait(&stat_loc);
+        process_running = false;
         if (WIFSIGNALED(stat_loc)) {
             eprintf("Killed by signal %d\n", WTERMSIG(stat_loc));
+            exit_status = 128 + WTERMSIG(stat_loc);
+        } else {
+            exit_status = WEXITSTATUS(stat_loc);
         }
-        process_running = false;
     }
     // char* args[] = {"1", "x", NULL};
     // printf("x %d\n", res);
@@ -78,7 +87,7 @@ void handle_token(char* token) {
     strcpy(tokens[i], token);
 }
 
-void sigint_handler(int sig) {
+void sigint_handler() {
     if (!process_running) {
         write(1, "\n", strlen("\n"));
         handle_line();
@@ -86,7 +95,7 @@ void sigint_handler(int sig) {
 }
 
 void set_sigint_handler() {
-    struct sigaction act = {0};
+    struct sigaction act;
     act.sa_handler = sigint_handler;
     act.sa_flags = SA_RESTART;
     sigemptyset(&act.sa_mask);
