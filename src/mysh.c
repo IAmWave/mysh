@@ -42,11 +42,23 @@ void handle_line() {
     fflush(stdout);
 }
 
-void handle_command() {
-    debug("Handling command\n");
-    for (int i = 0; tokens[i] != NULL; i++) {
-        debug("token %d: %s\n", i, tokens[i]);
+void run_exit() {
+    int n_tokens;
+    for (n_tokens = 0; tokens[n_tokens] != NULL; n_tokens++)
+        ;
+    if (n_tokens > 1) {
+        eprintf("'exit' was not expecting any arguments.\n");
+        exit_status = 1;
+    } else {
+        exit(exit_status);
     }
+}
+
+void run_cd() {
+    // TODO: implement
+}
+
+void run_command() {
     pid_t fork_pid;
     bool parent;
     process_running = true;
@@ -70,7 +82,6 @@ void handle_command() {
             exit(-1);
         }
     } else {
-        clear_command_tokens();
         int stat_loc;
         wait(&stat_loc);
         process_running = false;
@@ -83,6 +94,21 @@ void handle_command() {
     }
     // char* args[] = {"1", "x", NULL};
     // printf("x %d\n", res);
+}
+
+void handle_command() {
+    debug("Handling command\n");
+    for (int i = 0; tokens[i] != NULL; i++) {
+        debug("token %d: %s\n", i, tokens[i]);
+    }
+    if (strcmp(tokens[0], "exit") == 0) {
+        run_exit();
+    } else if (strcmp(tokens[0], "cd") == 0) {
+        run_cd();
+    } else {
+        run_command();
+    }
+    clear_command_tokens();
 }
 
 void handle_token(char* token) {
