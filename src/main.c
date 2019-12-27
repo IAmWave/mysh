@@ -9,6 +9,7 @@ extern FILE *yyin;
 void yyerror(const char *s);
 
 #include "../build/mysh.tab.h"
+#include "mysh.h"
 
 int main(int argc, char **argv) {
     //  // open a file handle to a particular file:
@@ -22,5 +23,7 @@ int main(int argc, char **argv) {
     //  yyin = myfile;
     //
     // Parse through the input:
+
+    init();
     yyparse();
 }
