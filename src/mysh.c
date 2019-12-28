@@ -7,23 +7,40 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
+#include <sys/queue.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define N_TOKENS 100
-
 bool interactive;
-char* tokens[N_TOKENS];
+char** tokens;
 bool process_running = false;
 int exit_status = 0;
 int line_number = 0;
 char pwd[MAXPATHLEN], oldpwd[MAXPATHLEN];
 
+struct node {
+    char* token;
+    TAILQ_ENTRY(node) nodes;
+};
+
+TAILQ_HEAD(head_s, node) tokens_head;
+
 void clear_command_tokens() {
-    for (int i = 0; i < N_TOKENS; i++) {
-        free(tokens[i]);
+    struct node* e = NULL;
+    while (!TAILQ_EMPTY(&tokens_head)) {
+        e = TAILQ_FIRST(&tokens_head);
+        TAILQ_REMOVE(&tokens_head, e, nodes);
+        free(e->token);
+        free(e);
+        e = NULL;
     }
-    memset(tokens, 0, sizeof(tokens));
+}
+
+int get_n_tokens() {
+    struct node* e = NULL;
+    int n_tokens = 0;
+    TAILQ_FOREACH(e, &tokens_head, nodes) { n_tokens++; }
+    return n_tokens;
 }
 
 void handle_syntax_error(const char* msg) {
@@ -40,13 +57,6 @@ void handle_line() {
         printf("mysh:%s$ ", pwd);
         fflush(stdout);
     }
-}
-
-int get_n_tokens() {
-    int n_tokens;
-    for (n_tokens = 0; tokens[n_tokens] != NULL; n_tokens++)
-        ;
-    return n_tokens;
 }
 
 void run_exit() {
@@ -137,14 +147,18 @@ void run_command() {
             exit_status = WEXITSTATUS(stat_loc);
         }
     }
-    // char* args[] = {"1", "x", NULL};
-    // printf("x %d\n", res);
 }
 
 void handle_command() {
     debug("Handling command\n");
-    for (int i = 0; tokens[i] != NULL; i++) {
-        debug("token %d: %s\n", i, tokens[i]);
+    int n_tokens = get_n_tokens();
+    tokens = calloc(n_tokens + 1, sizeof(char*));
+    struct node* e = NULL;
+    int qi = 0;
+    TAILQ_FOREACH(e, &tokens_head, nodes) {
+        debug("Token in queue: %s\n", e->token);
+        tokens[qi] = e->token;
+        qi++;
     }
     if (strcmp(tokens[0], "exit") == 0) {
         run_exit();
@@ -153,16 +167,21 @@ void handle_command() {
     } else {
         run_command();
     }
+    free(tokens);
     clear_command_tokens();
 }
 
 void handle_token(char* token) {
-    debug("Handling token %s\n", token);
-    int i;
-    for (i = 0; tokens[i] != NULL; i++)
-        ;
-    tokens[i] = malloc(strlen(token) + 1);
-    strcpy(tokens[i], token);
+    struct node* e = NULL;
+    e = malloc(sizeof(struct node));
+    if (e == NULL) {
+        eprintf("Error in malloc when adding token\n");
+        exit(1);
+    }
+
+    e->token = malloc(strlen(token) + 1);
+    strcpy(e->token, token);
+    TAILQ_INSERT_TAIL(&tokens_head, e, nodes);
 }
 
 void sigint_handler() {
@@ -183,5 +202,6 @@ void set_sigint_handler() {
 void init() {
     set_sigint_handler();
     update_pwd();
+    TAILQ_INIT(&tokens_head);
     handle_line();
 }

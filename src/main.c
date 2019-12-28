@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
             case 'c':
                 string_to_run = malloc(strlen(optarg) + 1);
                 if (string_to_run == NULL) {
-                    eprintf("Error when malloc'ing\n");
+                    eprintf("Error in malloc\n");
                     exit(1);
                 }
                 strcpy(string_to_run, optarg);
