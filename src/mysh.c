@@ -7,9 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
-const int N_TOKENS = 100;
+#define N_TOKENS 100
 
 bool interactive;
 char* tokens[N_TOKENS];
@@ -59,10 +60,10 @@ void run_exit() {
 }
 
 void update_pwd() {
-    char* getwd_res = getwd(pwd);
-    if (getwd_res == NULL) {
-        // getwd stores the error message in the buffer passed as an argument
-        eprintf("Error in getwd: %s\n", pwd);
+    char* getcwd_res = getcwd(pwd, MAXPATHLEN);
+    if (getcwd_res == NULL) {
+        // getcwd stores the error message in the buffer passed as an argument
+        eprintf("Error in getcwd: %s\n", pwd);
         // This would leave the shell in a weird state, so let's just give up.
         exit(1);
     }
@@ -117,12 +118,12 @@ void run_command() {
             parent = true;
     }
     if (!parent) {
-        int res = execvp(tokens[0], tokens);
+        execvp(tokens[0], tokens);
         if (errno == ENOENT) {
             eprintf("%s: No such file or directory\n", tokens[0]);
             exit(127);
         } else {
-            eprintf("Unknown error in execvp. errno: %d\n", res, errno);
+            eprintf("Unknown error in execvp. errno: %d\n", errno);
             exit(-1);
         }
     } else {
