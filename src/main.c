@@ -16,6 +16,7 @@ extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
 
 #include "../build/mysh.tab.h"
 #include "mysh.h"
+#include "util.h"
 
 int main(int argc, char *argv[]) {
     int opt;
