@@ -10,6 +10,10 @@ void init();
 int exit_status;
 bool interactive;
 
+enum redirection_type {
+    redirect_in, redirect_out, redirect_out_append
+};
+
 #define eprintf(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
 
 #ifdef DEBUG

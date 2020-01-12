@@ -16,7 +16,7 @@
 }
 
 // define the constant-string tokens:
-%token ENDL SEMICOLON PIPE
+%token ENDL SEMICOLON PIPE REDIRECT_IN REDIRECT_OUT REDIRECT_OUT_APPEND
 
 // define the "terminal symbol" token types I'm going to use (in CAPS
 // by convention), and associate each with a field of the union:
@@ -31,36 +31,53 @@ lines:
     lines endl line
 |   line
 |   error
-    ;
 
 line:
     /*empty*/ { /*handle_line();*/ }
 |   SEMICOLON { /*handle_line();*/ }
-|   commands { /*handle_line();*/ }
-|   commands SEMICOLON { /*handle_line();*/ }
-    ;
+|   pipelines { /*handle_line();*/ }
+|   pipelines SEMICOLON { /*handle_line();*/ }
 
 endl: ENDL
     {
         handle_line();
-    };
+    }
 
-commands:
-    command { handle_command(); }
-|   commands SEMICOLON command { handle_command(); }
-    ;
+pipelines:
+    pipeline { handle_pipeline(); }
+|   pipelines SEMICOLON pipeline { handle_pipeline(); }
+
+pipeline:
+    command_redirected { handle_command(); }
+|   pipeline PIPE command_redirected { handle_command(); }
+
+command_redirected:
+    command
+|   command_redirected REDIRECT_IN STRING
+    {
+        handle_redirection(redirect_in, $3);
+        free($3);
+    }
+|   command_redirected REDIRECT_OUT STRING
+    {
+        handle_redirection(redirect_out, $3);
+        free($3);
+    }
+|   command_redirected REDIRECT_OUT_APPEND STRING
+    {
+        handle_redirection(redirect_out_append, $3);
+        free($3);
+    }
 
 command:
     command_token
 |   command command_token
-    ;
 
 command_token: STRING
     {
         handle_token($1);
-        //printf("token %s\n", $1);
         free($1);
-    };
+    }
 
 %%
 

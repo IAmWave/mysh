@@ -149,8 +149,18 @@ void run_command() {
     }
 }
 
+void handle_pipeline() {
+    debug("Handling pipeline\n");
+    return;
+}
+
+void handle_redirection(enum redirection_type type, char* path) {
+    debug("Handling redirection %s %d\n", path, type);
+}
+
 void handle_command() {
     debug("Handling command\n");
+    return;
     int n_tokens = get_n_tokens();
     tokens = calloc(n_tokens + 1, sizeof(char*));
     struct node* e = NULL;
@@ -172,6 +182,8 @@ void handle_command() {
 }
 
 void handle_token(char* token) {
+    debug("Handling token %s\n", token);
+    return;
     struct node* e = NULL;
     e = malloc(sizeof(struct node));
     if (e == NULL) {
