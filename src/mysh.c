@@ -8,11 +8,10 @@
 #include <string.h>
 #include <sys/param.h>
 #include <sys/queue.h>
-#include <sys/wait.h>
 #include <unistd.h>
 
-#include "util.h"
 #include "command.h"
+#include "util.h"
 
 bool interactive;
 char** tokens;
@@ -38,18 +37,36 @@ void handle_line() {
     }
 }
 
-void handle_pipeline() {
-    debug("Handling pipeline\n");
-}
+void handle_pipeline() { debug("Handling pipeline\n"); }
 
 void handle_redirection(enum redirection_type type, char* path) {
     debug("Handling redirection %s %d\n", path, type);
+    char** copy_to = NULL;
+    switch (type) {
+        case redirect_in:
+            copy_to = &cmd->in;
+            break;
+        case redirect_out:
+            copy_to = &cmd->out;
+            cmd->append_out = false;
+            break;
+        case redirect_out_append:
+            copy_to = &cmd->out;
+            cmd->append_out = true;
+            break;
+    }
+    free(*copy_to);
+    *copy_to = malloc_checked(strlen(path) + 1);
+    strcpy(*copy_to, path);
 }
 
 void handle_command() {
     debug("Handling command\n");
     process_running = true;
     exit_status = run_command(cmd, exit_status, pwd, oldpwd);
+    free_command(cmd);
+    cmd = malloc_checked(sizeof(struct Command));
+    initialize_command(cmd);
     process_running = false;
 }
 

@@ -1,3 +1,6 @@
+CFLAGS=-std=c99 -Wall -Wextra -Wshadow \
+	   -Werror=implicit-function-declaration
+
 all: build/mysh
 
 build/:
@@ -17,5 +20,5 @@ SOURCE_FILES=src/main.c src/mysh.c src/command.c src/util.c
 build/mysh: build/ build/mysh.yy.c build/mysh.tab.c build/mysh.tab.h $(SOURCE_FILES)
 	gcc \
 		build/mysh.tab.c build/mysh.yy.c $(SOURCE_FILES) \
-		-Wall -Wextra $(EXTRA_FLAGS) \
+		$(CFLAGS) $(EXTRA_FLAGS) \
 		-o build/mysh

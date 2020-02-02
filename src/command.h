@@ -16,6 +16,7 @@ struct Command {
 };
 
 void initialize_command(struct Command* cmd);
+void free_command(struct Command* cmd);
 void add_token(struct Command* cmd, char* token);
 int run_command(struct Command* cmd, int exit_status, char* pwd, char* oldpwd);
 void clear_command_tokens(struct Command* cmd);
