@@ -2,6 +2,7 @@
 #define MYSH_UTIL_H
 
 #include <stdio.h>
+#include <unistd.h>
 
 #define eprintf(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
 
@@ -9,6 +10,7 @@
 #define debugln(format, ...) fprintf(stderr, "%d: " format "\n", getpid(), ##__VA_ARGS__)
 #define debug(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
 #else
+#define debugln(format, ...) ;
 #define debug(format, ...) ;
 #endif
 

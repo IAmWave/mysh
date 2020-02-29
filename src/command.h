@@ -12,14 +12,13 @@ struct TokenNode {
 struct Command {
     char *in, *out;
     bool append_out;
-    TAILQ_HEAD(head_s, TokenNode) tokens_head;
+    TAILQ_HEAD(head_command_t, TokenNode) tokens_head;
 };
 
 void initialize_command(struct Command* cmd);
 void free_command(struct Command* cmd);
 void add_token(struct Command* cmd, char* token);
 int run_command(struct Command* cmd, int exit_status, char* pwd, char* oldpwd);
-void clear_command_tokens(struct Command* cmd);
 int get_n_tokens_in_command(struct Command* cmd);
 
 #endif

@@ -52,28 +52,29 @@ pipeline:
 |   pipeline PIPE command { handle_command(); }
 
 command:
-    /* empty */ {}
-|   command command_token
-|   command REDIRECT_IN STRING
-    {
-        handle_redirection(redirect_in, $3);
-        free($3);
-    }
-|   command REDIRECT_OUT STRING
-    {
-        handle_redirection(redirect_out, $3);
-        free($3);
-    }
-|   command REDIRECT_OUT_APPEND STRING
-    {
-        handle_redirection(redirect_out_append, $3);
-        free($3);
-    }
+    command_part
+|   command command_part
 
-command_token: STRING
+command_part:
+    STRING
     {
         handle_token($1);
         free($1);
+    }
+|   REDIRECT_IN STRING
+    {
+        handle_redirection(redirect_in, $2);
+        free($2);
+    }
+|   REDIRECT_OUT STRING
+    {
+        handle_redirection(redirect_out, $2);
+        free($2);
+    }
+|   REDIRECT_OUT_APPEND STRING
+    {
+        handle_redirection(redirect_out_append, $2);
+        free($2);
     }
 
 %%

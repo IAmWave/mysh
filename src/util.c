@@ -1,5 +1,6 @@
 #include "util.h"
 
+#include <err.h>
 #include <stdlib.h>
 #include <sys/param.h>
 #include <unistd.h>
@@ -7,8 +8,7 @@
 void* malloc_checked(size_t size) {
     void* res = malloc(size);
     if (res == NULL) {
-        eprintf("Error in malloc\n");
-        exit(1);
+        err(1, "malloc");
     }
     return res;
 }

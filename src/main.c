@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
         file_to_run = argv[optind];
     }
 
-    interactive = string_to_run == NULL && file_to_run == NULL;
+    interactive = string_to_run == NULL && file_to_run == NULL && isatty(STDIN_FILENO);
     init();
 
     if (file_to_run != NULL) {

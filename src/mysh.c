@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "command.h"
+#include "pipeline.h"
 #include "util.h"
 
 bool interactive;
@@ -20,6 +21,7 @@ int exit_status = 0;
 int line_number = 0;
 char pwd[MAXPATHLEN], oldpwd[MAXPATHLEN];
 struct Command* cmd;
+struct Pipeline* pipeline;
 
 void handle_syntax_error(const char* msg) {
     eprintf("Parsing error on line %d. Message from Bison: %s\n", line_number, msg);
@@ -36,8 +38,6 @@ void handle_line() {
         fflush(stdout);
     }
 }
-
-void handle_pipeline() { debugln("Handling pipeline"); }
 
 void handle_redirection(enum redirection_type type, char* path) {
     debugln("Handling redirection %s %d", path, type);
@@ -60,14 +60,20 @@ void handle_redirection(enum redirection_type type, char* path) {
     strcpy(*copy_to, path);
 }
 
+void handle_pipeline() {
+    process_running = true;
+    exit_status = run_pipeline(pipeline, exit_status, pwd, oldpwd);
+    free_pipeline(pipeline);
+    pipeline = malloc_checked(sizeof(struct Command));
+    initialize_pipeline(pipeline);
+    process_running = false;
+}
+
 void handle_command() {
     debugln("Handling command");
-    process_running = true;
-    exit_status = run_command(cmd, exit_status, pwd, oldpwd);
-    free_command(cmd);
+    add_command(pipeline, cmd);
     cmd = malloc_checked(sizeof(struct Command));
     initialize_command(cmd);
-    process_running = false;
 }
 
 void handle_token(char* token) {
@@ -95,5 +101,7 @@ void init() {
     update_pwd(pwd);
     cmd = malloc_checked(sizeof(struct Command));
     initialize_command(cmd);
+    pipeline = malloc_checked(sizeof(struct Pipeline));
+    initialize_pipeline(pipeline);
     handle_line();
 }
