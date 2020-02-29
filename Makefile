@@ -20,6 +20,7 @@ SOURCE_FILES=src/main.c src/mysh.c src/command.c src/util.c src/pipeline.c
 
 build/mysh: build/ build/mysh.yy.c build/mysh.tab.c build/mysh.tab.h $(SOURCE_FILES)
 	gcc \
+		-D_XOPEN_SOURCE=700 \
 		-I build/ -I src/ \
 		build/mysh.tab.c build/mysh.yy.c $(SOURCE_FILES) \
 		$(CFLAGS) $(EXTRA_FLAGS) \
