@@ -48,30 +48,27 @@ pipelines:
 |   pipelines SEMICOLON pipeline { handle_pipeline(); }
 
 pipeline:
-    command_redirected { handle_command(); }
-|   pipeline PIPE command_redirected { handle_command(); }
+    command { handle_command(); }
+|   pipeline PIPE command { handle_command(); }
 
-command_redirected:
-    command
-|   command_redirected REDIRECT_IN STRING
+command:
+    /* empty */ {}
+|   command command_token
+|   command REDIRECT_IN STRING
     {
         handle_redirection(redirect_in, $3);
         free($3);
     }
-|   command_redirected REDIRECT_OUT STRING
+|   command REDIRECT_OUT STRING
     {
         handle_redirection(redirect_out, $3);
         free($3);
     }
-|   command_redirected REDIRECT_OUT_APPEND STRING
+|   command REDIRECT_OUT_APPEND STRING
     {
         handle_redirection(redirect_out_append, $3);
         free($3);
     }
-
-command:
-    command_token
-|   command command_token
 
 command_token: STRING
     {

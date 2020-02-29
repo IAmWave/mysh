@@ -56,7 +56,7 @@ int run_cd(int n_tokens, char** tokens, char* pwd, char* oldpwd) {
         eprintf("cd: too many arguments\n");
         return 1;
     }
-    debug("cd from %s to %s, oldpwd=%s\n", pwd, target, oldpwd);
+    debugln("cd from %s to %s, oldpwd=%s", pwd, target, oldpwd);
     int res = chdir(target);
     strcpy(oldpwd, pwd);
     update_pwd(pwd);
@@ -73,7 +73,7 @@ int run_regular_command(int n_tokens, char** tokens, int fd_in, int fd_out) {
     bool parent;
     switch (fork_pid = fork()) {
         case -1:
-            debug("Error when forking\n");
+            debugln("Error when forking");
             exit(1);
         case 0:
             parent = false;
@@ -120,7 +120,7 @@ int open_redirections(struct Command* cmd, int* fd_in, int* fd_out) {
             eprintf("Error when open()-ing %s: %s\n", cmd->in, strerror(errno));
             return 1;
         }
-        debug("Input from %s\n", cmd->in);
+        debugln("Input from %s", cmd->in);
     }
     if (cmd->out != NULL) {
         *fd_out = open(cmd->out,
@@ -129,7 +129,7 @@ int open_redirections(struct Command* cmd, int* fd_in, int* fd_out) {
             eprintf("Error when open()-ing %s: %s\n", cmd->out, strerror(errno));
             return 1;
         }
-        debug("Output to %s\n", cmd->out);
+        debugln("Output to %s", cmd->out);
     }
     return 0;
 }
@@ -149,19 +149,23 @@ void close_redirections(int fd_in, int fd_out) {
 
 int run_command(struct Command* cmd, int exit_status, char* pwd, char* oldpwd) {
     struct TokenNode* e = NULL;
-    debug("Running command ");
+    debug("Running command:");
     TAILQ_FOREACH(e, &(cmd->tokens_head), nodes) { debug(" %s", e->token); }
     debug("\n");
+    int n_tokens = get_n_tokens_in_command(cmd);
+    if (n_tokens == 0) {
+        // An empty command is valid, as in bash
+        return 0;
+    }
 
     int fd_in = STDIN_FILENO, fd_out = STDOUT_FILENO;
     if (open_redirections(cmd, &fd_in, &fd_out) != 0) {
         return 1;
     }
-    int n_tokens = get_n_tokens_in_command(cmd);
     char** tokens = calloc(n_tokens + 1, sizeof(char*));
     int qi = 0;
     TAILQ_FOREACH(e, &(cmd->tokens_head), nodes) {
-        // debug("Token in queue: %s\n", e->token);
+        // debugln("Token in queue: %s", e->token);
         tokens[qi] = e->token;
         qi++;
     }

@@ -37,10 +37,10 @@ void handle_line() {
     }
 }
 
-void handle_pipeline() { debug("Handling pipeline\n"); }
+void handle_pipeline() { debugln("Handling pipeline"); }
 
 void handle_redirection(enum redirection_type type, char* path) {
-    debug("Handling redirection %s %d\n", path, type);
+    debugln("Handling redirection %s %d", path, type);
     char** copy_to = NULL;
     switch (type) {
         case redirect_in:
@@ -61,7 +61,7 @@ void handle_redirection(enum redirection_type type, char* path) {
 }
 
 void handle_command() {
-    debug("Handling command\n");
+    debugln("Handling command");
     process_running = true;
     exit_status = run_command(cmd, exit_status, pwd, oldpwd);
     free_command(cmd);
@@ -71,7 +71,7 @@ void handle_command() {
 }
 
 void handle_token(char* token) {
-    debug("Handling token %s\n", token);
+    debugln("Handling token %s", token);
     add_token(cmd, token);
 }
 

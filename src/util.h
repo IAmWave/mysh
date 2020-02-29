@@ -6,7 +6,8 @@
 #define eprintf(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
 
 #ifdef DEBUG
-#define debug(format, ...) fprintf(stderr, "%d: " format, getpid(), ##__VA_ARGS__)
+#define debugln(format, ...) fprintf(stderr, "%d: " format "\n", getpid(), ##__VA_ARGS__)
+#define debug(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
 #else
 #define debug(format, ...) ;
 #endif
