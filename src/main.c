@@ -14,7 +14,7 @@ void yyerror(const char *s);
 extern YY_BUFFER_STATE yy_scan_string(char *str);
 extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
 
-#include "../build/mysh.tab.h"
+#include "mysh.tab.h"
 #include "mysh.h"
 #include "util.h"
 
@@ -25,11 +25,7 @@ int main(int argc, char *argv[]) {
     while ((opt = getopt(argc, argv, "c:")) != -1) {
         switch (opt) {
             case 'c':
-                string_to_run = malloc(strlen(optarg) + 1);
-                if (string_to_run == NULL) {
-                    eprintf("Error in malloc\n");
-                    exit(1);
-                }
+                string_to_run = malloc_checked(strlen(optarg) + 1);
                 strcpy(string_to_run, optarg);
                 break;
             case '?':

@@ -3,10 +3,13 @@
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <pwd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/queue.h>
+#include <sys/types.h>
 #include <unistd.h>
+#include <uuid/uuid.h>
 
 #include "util.h"
 
@@ -37,10 +40,20 @@ void add_token(struct Command* cmd, char* token) {
     TAILQ_INSERT_TAIL(&(cmd->tokens_head), e, nodes);
 }
 
+char* get_home_dir() {
+    char* dir;
+    if ((dir = getenv("HOME")) == NULL) {
+        struct passwd* pw = getpwuid(getuid());
+        if (pw == NULL) err(1, "getpwuid");
+        dir = pw->pw_dir;
+    }
+    return dir;
+}
+
 int run_cd(int n_tokens, char** tokens, char* pwd, char* oldpwd) {
     char* target;
     if (n_tokens == 1) {
-        target = getenv("HOME");
+        target = get_home_dir();
     } else if (n_tokens == 2) {
         if (strcmp("-", tokens[1]) == 0) {
             if (strcmp(oldpwd, "") == 0) {
@@ -163,6 +176,7 @@ int run_command(struct Command* cmd, int exit_status, char* pwd, char* oldpwd) {
         return 1;
     }
     char** tokens = calloc(n_tokens + 1, sizeof(char*));
+    if (tokens == NULL) err(1, "calloc");
     int qi = 0;
     TAILQ_FOREACH(e, &(cmd->tokens_head), nodes) {
         // debugln("Token in queue: %s", e->token);

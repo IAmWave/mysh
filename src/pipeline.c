@@ -54,7 +54,6 @@ int run_pipeline(struct Pipeline* p, int exit_status, char* pwd, char* oldpwd) {
                     err(1, "fork");
                     break;
                 case 0:  // child
-                    // printf("%d %d\n", in_fd, out_fd);
                     if (in_fd != STDIN_FILENO) {
                         if (close(STDIN_FILENO) == -1) err(1, "close");
                         if (dup(in_fd) == -1) err(1, "dup");

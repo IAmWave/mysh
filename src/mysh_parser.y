@@ -2,7 +2,7 @@
     #include <stdio.h>
     #include <stdlib.h>
 
-    #include "../src/mysh.h"
+    #include "mysh.h"
     // stuff from flex that bison needs to know about:
     extern int yylex();
     extern int yyparse();

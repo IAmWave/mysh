@@ -15,7 +15,6 @@
 #include "util.h"
 
 bool interactive;
-char** tokens;
 bool process_running = false;
 int exit_status = 0;
 int line_number = 0;
@@ -41,6 +40,7 @@ void handle_line() {
 
 void handle_redirection(enum redirection_type type, char* path) {
     debugln("Handling redirection %s %d", path, type);
+
     char** copy_to = NULL;
     switch (type) {
         case redirect_in:
@@ -55,17 +55,21 @@ void handle_redirection(enum redirection_type type, char* path) {
             cmd->append_out = true;
             break;
     }
+
     free(*copy_to);
     *copy_to = malloc_checked(strlen(path) + 1);
     strcpy(*copy_to, path);
 }
 
 void handle_pipeline() {
+    debugln("Handling pipeline");
     process_running = true;
+
     exit_status = run_pipeline(pipeline, exit_status, pwd, oldpwd);
     free_pipeline(pipeline);
     pipeline = malloc_checked(sizeof(struct Command));
     initialize_pipeline(pipeline);
+
     process_running = false;
 }
 
@@ -99,9 +103,12 @@ void set_sigint_handler() {
 void init() {
     set_sigint_handler();
     update_pwd(pwd);
+
     cmd = malloc_checked(sizeof(struct Command));
     initialize_command(cmd);
+
     pipeline = malloc_checked(sizeof(struct Pipeline));
     initialize_pipeline(pipeline);
+
     handle_line();
 }
